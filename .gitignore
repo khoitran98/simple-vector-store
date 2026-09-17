@@ -1,0 +1,19 @@
+# Benchmark caches — regenerated on demand by bench.py (data/ is ~1.7 GB)
+**/benchmark/build/
+**/benchmark/data/
+
+# Compiled artifacts
+*.o
+*.dylib
+*.so
+vstore
+
+# Python
+__pycache__/
+*.pyc
+
+# Jupyter autosaves
+.ipynb_checkpoints/
+
+# OS cruft
+.DS_Store

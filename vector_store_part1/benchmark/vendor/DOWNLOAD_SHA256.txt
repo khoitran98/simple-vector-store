@@ -1,0 +1,1 @@
+3acd67cb4aff080c7050926fd3cf8227905fe5b7ee3829d8ee5024ab1283cf61  sqlite-vec-0.1.9-amalgamation.tar.gz
