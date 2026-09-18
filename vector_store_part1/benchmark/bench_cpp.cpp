@@ -21,7 +21,7 @@
 #include <chrono>
 
 // The store under test. Which implementation this resolves to is chosen at
-// compile time by the -I include path the harness passes (e.g.
+// compile time by the -I (e.g.
 // -I../impls/initial_design_no_opt), so the SAME source benchmarks any impls/<keyword>.
 #include "vector_store.h"
 
