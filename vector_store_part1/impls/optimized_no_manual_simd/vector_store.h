@@ -7,7 +7,7 @@
 // This version is tuned for speed. The two ideas behind the speedup are:
 //
 //   * cache-friendly layout -- every stored vector lives in ONE big flat array
-//     (structure-of-arrays), so a search streams straight through contiguous
+//     , so a search streams straight through contiguous
 //     memory instead of chasing a pointer to each row's own allocation.
 //   * a bounded priority_queue -- search keeps only the best k results in a size-k heap
 //     instead of scoring-then-sorting all N and throwing most away.

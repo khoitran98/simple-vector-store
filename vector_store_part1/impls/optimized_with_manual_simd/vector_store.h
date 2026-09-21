@@ -7,7 +7,7 @@
 // This version is tuned for speed. The two ideas behind the speedup are:
 //
 //   * cache-friendly layout -- every stored vector lives in ONE big flat array
-//     (structure-of-arrays), so a search streams straight through contiguous
+//     , so a search streams straight through contiguous
 //     memory instead of chasing a pointer to each row's own allocation.
 //   * SIMD -- the inner multiply-add loops use NEON on ARM (for Apple Silicon),
 //     doing 4 floats per instruction, with a plain scalar fallback elsewhere.
