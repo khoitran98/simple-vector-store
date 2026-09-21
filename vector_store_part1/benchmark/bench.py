@@ -22,7 +22,7 @@ IMPLS_DIR = Path("../impls")   # where <impl>/vector_store.h live
 @dataclass
 class Engine:
     impl: str = ""              # folder under IMPLS_DIR (ignored for kind="sqlite")
-    flags: str = ""             # raw g++ flags, e.g. "-O2 -ffast-math"
+    flags: str = ""             # raw compiler flags, e.g. "-O2 -ffast-math"
     color: str = "tab:blue"
     kind: str = "cpp"           # "cpp" or "sqlite"
 
@@ -54,9 +54,12 @@ def build(label, e):
         if not (Path(SQLITE_INC) / "sqlite3.h").exists():
             print(f"[skip] {label}: Homebrew sqlite not found at {SQLITE_INC}")
             return None
-        obj = BUILD / "sqlite-vec.o"
+        
+        key = re.sub(r"[^A-Za-z0-9]+", "_", e.flags).strip("_").lower() or "base"
+        obj = BUILD / f"sqlite-vec_{key}.o"
         if not obj.exists():
-            _sh(["cc", "-O3", "-DSQLITE_CORE", "-DSQLITE_VEC_STATIC", "-DSQLITE_VEC_OMIT_FS",
+            _sh(["cc", "-DSQLITE_CORE", "-DSQLITE_VEC_STATIC", "-DSQLITE_VEC_OMIT_FS",
+                 *e.flags.split(),
                  f"-I{SQLITE_INC}", "-c", VENDOR / "sqlite-vec.c", "-o", obj])
         # -I{HERE} lets bench_sqlite.cpp's #include "vendor/sqlite-vec.h" resolve locally.
         _sh(["g++", "-std=c++17", *e.flags.split(), f"-I{HERE}", f"-I{SQLITE_INC}",

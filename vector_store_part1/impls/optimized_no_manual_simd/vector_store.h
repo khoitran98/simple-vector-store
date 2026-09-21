@@ -249,7 +249,7 @@ public:
         return true;
     }
 
-    // Load vectors from a text file written by save().
+    // Load vectors from a text file .
     // This first clears the current store, then reads every line.
     // Returns true on success.
     bool load(const std::string& path) {
