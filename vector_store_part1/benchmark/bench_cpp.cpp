@@ -42,8 +42,8 @@ Metric parse_metric(const std::string& name) {
 // Read the query file into a list of vectors.
 // The file format is "id v0 v1 v2 ..." per line (same as the vectors file).
 // We do read the query id but only the vector values matter.
-std::vector<std::vector<double>> read_queries(const std::string& path) {
-    std::vector<std::vector<double>> queries;
+std::vector<std::vector<float>> read_queries(const std::string& path) {
+    std::vector<std::vector<float>> queries;
 
     std::ifstream file(path);
     std::string line;
@@ -56,8 +56,8 @@ std::vector<std::vector<double>> read_queries(const std::string& path) {
         }
 
         // Read the rest of the numbers on the line into one query vector.
-        std::vector<double> values;
-        double value;
+        std::vector<float> values;
+        float value;
         while (stream >> value) {
             values.push_back(value);
         }
@@ -93,7 +93,7 @@ int main(int argc, char** argv) {
     auto load_end = std::chrono::steady_clock::now();
 
     // --- Step 2: load the queries. ---
-    std::vector<std::vector<double>> queries = read_queries(queries_path);
+    std::vector<std::vector<float>> queries = read_queries(queries_path);
     if (queries.empty()) {
         std::cout << "No queries found in " << queries_path << "\n";
         return 1;

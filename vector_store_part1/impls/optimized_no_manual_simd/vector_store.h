@@ -14,7 +14,6 @@
 //
 //
 // Vectors are stored internally as 32-bit floats (like most vector databases),
-// but the public API still speaks std::vector<double> similar to the previous implementation.
 
 #pragma once
 
@@ -35,15 +34,15 @@ enum class Metric { Euclidean, DotProduct, Cosine };
 // One stored item: an id and its list of numbers.
 struct Record {
     int id;
-    std::vector<double> values;
+    std::vector<float> values;
 };
 
 // One search result: the id of a stored vector, its values, and its score
 // vs. the query.
 struct Result {
     int id;
-    std::vector<double> values;
-    double score;
+    std::vector<float> values;
+    float score;
 };
 
 // ----- Math helpers -------------------------------------------------
@@ -93,7 +92,7 @@ public:
 
     // Add a new vector and increment the id
     // Returns the new id, or -1 if the vector has the wrong number of values.
-    int add(const std::vector<double>& values) {
+    int add(const std::vector<float>& values) {
         if (int(values.size()) != dimension) {
             return -1;
         }
@@ -133,7 +132,7 @@ public:
         for (std::size_t i = 0; i < ids.size(); ++i) {
             Record record;
             record.id = ids[i];
-            record.values = row_to_double(i);
+            record.values = row_to_float(i);
             records.push_back(std::move(record));
         }
         return records;
@@ -142,7 +141,7 @@ public:
     // Brute-force search.
     // Compares the query to every stored vector, then returns the best k,
     // with the best match first.
-    std::vector<Result> search(const std::vector<double>& query,
+    std::vector<Result> search(const std::vector<float>& query,
                                int k, Metric metric) const {
         std::vector<Result> results;
 
@@ -153,11 +152,11 @@ public:
             return results;
         }
 
-        // Copy the query into a float buffer once (narrow double->float) so
+        // Copy the query into a padded float buffer once (zero-filled tail) so
         // every kernel call reuses it.
         std::vector<float> q(stride, 0.0f);
         for (int j = 0; j < dimension; ++j) {
-            q[j] = float(query[j]);
+            q[j] = query[j];
         }
 
         // For cosine, the query's length is the same for every record, so we
@@ -221,10 +220,10 @@ public:
             const Cand& c = heap.top();
             Result& r = results[pos];
             r.id = ids[c.idx];
-            r.values = row_to_double(c.idx);          
+            r.values = row_to_float(c.idx);          
             r.score = (metric == Metric::Euclidean)
-                          ? std::sqrt(double(c.score))
-                          : double(c.score);
+                          ? std::sqrt(c.score)
+                          : c.score;
             heap.pop();
         }
         return results;
@@ -242,7 +241,7 @@ public:
             const float* row = data.data() + i * stride;
             file << ids[i];
             for (int j = 0; j < dimension; ++j) {
-                file << " " << double(row[j]);
+                file << " " << row[j];
             }
             file << "\n";
         }
@@ -339,13 +338,13 @@ public:
     }
 
 private:
-    // Append one row (given as `count` doubles) to the flat arrays, narrowing to
-    // float and caching its L2 norm.
-    void append_row(const double* values, int count) {
+    // Append one row (given as `count` floats) to the flat arrays, zero-padding
+    // to the stride and caching its L2 norm.
+    void append_row(const float* values, int count) {
         std::size_t base = data.size();
         data.resize(base + stride, 0.0f);
         for (int j = 0; j < count && j < stride; ++j) {
-            data[base + j] = float(values[j]);
+            data[base + j] = values[j];
         }
         float* row = data.data() + base;
         norms.push_back(std::sqrt(dot_f32(row, row, stride)));
@@ -358,12 +357,12 @@ private:
         norms.erase(norms.begin() + i);
     }
 
-    // Widen row `i` back to a std::vector<double> of the logical dimension.
-    std::vector<double> row_to_double(std::size_t i) const {
+    // Copy row `i` back out as a std::vector<float> of the logical dimension.
+    std::vector<float> row_to_float(std::size_t i) const {
         const float* row = data.data() + i * std::size_t(stride);
-        std::vector<double> out(dimension);
+        std::vector<float> out(dimension);
         for (int j = 0; j < dimension; ++j) {
-            out[j] = double(row[j]);
+            out[j] = row[j];
         }
         return out;
     }
